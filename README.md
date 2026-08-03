@@ -1,6 +1,10 @@
 # Student Management System
 
-A full-stack Student Management System built with **Spring Boot**, **Spring Data JPA**, **MySQL**, and **Thymeleaf** (no React/Angular). Includes both a REST API and a server-rendered Bootstrap 5 web UI.
+🔗 **Live demo:** [studentmanagementsystemapplication-2.onrender.com](https://studentmanagementsystemapplication-2.onrender.com/)
+
+> Note: hosted on Render's free tier — the app may take 30–60 seconds to wake up on first load after a period of inactivity.
+
+A full-stack Student Management System built with **Spring Boot**, **Spring Data JPA**, **MySQL**, and **Thymeleaf** (no React/Angular). Includes both a REST API and a server-rendered Bootstrap 5 web UI, deployed live via Docker on Render with a managed MySQL database (Aiven).
 
 ## Tech Stack
 
@@ -13,6 +17,7 @@ A full-stack Student Management System built with **Spring Boot**, **Spring Data
 - Maven
 - Bean Validation (Jakarta Validation)
 - Lombok
+- Docker (deployment)
 
 ## Features
 
@@ -24,20 +29,25 @@ A full-stack Student Management System built with **Spring Boot**, **Spring Data
 - Custom 404 page and centralized REST error handling (`GlobalExceptionHandler`)
 - REST API for programmatic access, independent of the web UI
 
-## Getting Started
+## Getting Started (Local Development)
 
-### 1. Create the database
+### 1. Database
 
-MySQL will auto-create the schema on first run because of `createDatabaseIfNotExist=true` in `application.properties`, but MySQL itself must be running locally on port 3306.
+MySQL will auto-create the schema on first run because of `createDatabaseIfNotExist=true`, but MySQL itself must be running locally on port 3306 (or point at any MySQL-compatible instance, local or cloud).
 
-Update the credentials in `src/main/resources/application.properties`:
+### 2. Configure credentials
+
+Database connection details are read from environment variables, with local defaults as a fallback — real credentials are **never** hardcoded in `application.properties`:
 
 ```properties
-spring.datasource.username=root
-spring.datasource.password=yourpassword
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/student_management_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:root}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:yourpassword}
 ```
 
-### 2. Run the app
+For local development, either edit the fallback values directly, or set environment variables (e.g. in your IDE's Run Configuration) — the latter is recommended so you never commit real credentials.
+
+### 3. Run the app
 
 ```bash
 mvn spring-boot:run
@@ -48,14 +58,29 @@ The app starts on **http://localhost:8080**.
 - Web UI: http://localhost:8080/dashboard
 - REST API base: http://localhost:8080/api/students
 
-### 3. Build a JAR (optional)
+### 4. Build a JAR (optional)
 
 ```bash
 mvn clean package
 java -jar target/student-management-system.jar
 ```
 
+## Deployment
+
+This project is deployed as a Docker container on [Render](https://render.com), connected to a managed MySQL instance on [Aiven](https://aiven.io). Render doesn't offer a native Java runtime, so the included `Dockerfile` handles the build using a multi-stage image (Maven build stage → slim JRE run stage).
+
+To deploy your own copy:
+1. Push this repo to your own GitHub account
+2. Create a new Web Service on Render, pointing at your repo (it auto-detects the `Dockerfile`)
+3. Set these environment variables in Render's dashboard:
+   - `SPRING_DATASOURCE_URL`
+   - `SPRING_DATASOURCE_USERNAME`
+   - `SPRING_DATASOURCE_PASSWORD`
+4. Deploy — Render assigns the port automatically via the `PORT` environment variable, which `application.properties` already reads
+
 ## REST API Reference
+
+Base URL: `http://localhost:8080` (local) or `https://studentmanagementsystemapplication-2.onrender.com` (live)
 
 | Method | Endpoint                        | Description                  |
 |--------|----------------------------------|-------------------------------|
